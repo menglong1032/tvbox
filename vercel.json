@@ -1,12 +1,5 @@
 {
   "rewrites": [
-    {
-      "source": "/api/maoyan",
-      "has": [
-        { "type": "query", "key": "action", "value": "videos" }
-      ],
-      "destination": "/api/trailers"
-    },
     { "source": "/", "destination": "/data-lab/realtime.html" }
   ],
   "headers": [
