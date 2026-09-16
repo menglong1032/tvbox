@@ -5,6 +5,23 @@ function allowedHost(hostname = '') {
   return h === 'pipi.cn' || h.endsWith('.pipi.cn') || h === 'meituan.net' || h.endsWith('.meituan.net') || h === 'dpfile.com' || h.endsWith('.dpfile.com') || h === 'maoyan.com' || h.endsWith('.maoyan.com');
 }
 
+function upgradeTinyImage(u) {
+  const h = u.hostname.toLowerCase();
+  const isMaoyanCdn = h === 'pipi.cn' || h.endsWith('.pipi.cn') || h === 'meituan.net' || h.endsWith('.meituan.net');
+  if (!isMaoyanCdn) return u;
+
+  const search = String(u.search || '');
+  const m = search.match(/imageView2\/(?:\d+)\/w\/(\d+)\/h\/(\d+)/i);
+  if (m) {
+    const w = Number(m[1]);
+    const height = Number(m[2]);
+    if (w <= 400 || height <= 600) {
+      u.search = '?imageMogr2/quality/90';
+    }
+  }
+  return u;
+}
+
 module.exports = async function handler(req, res) {
   try {
     const raw = String(req.query.url || '').trim();
@@ -12,11 +29,13 @@ module.exports = async function handler(req, res) {
       res.statusCode = 400;
       return res.end('missing url');
     }
-    const u = new URL(raw);
+
+    let u = new URL(raw);
     if (u.protocol !== 'https:' || !allowedHost(u.hostname)) {
       res.statusCode = 403;
       return res.end('blocked host');
     }
+    u = upgradeTinyImage(u);
 
     const upstream = await fetch(u.toString(), {
       headers: {
@@ -54,6 +73,7 @@ module.exports = async function handler(req, res) {
     res.setHeader('Content-Type', type);
     res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000');
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('X-Image-Upstream', u.toString());
     res.end(buf);
   } catch (e) {
     res.statusCode = 502;
