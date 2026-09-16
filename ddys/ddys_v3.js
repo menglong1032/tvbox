@@ -14,8 +14,8 @@ var rule = {
     play_parse: true,
     limit: 20,
 
-    class_name: '最近更新&电影&电视剧&动漫&综艺',
-    class_url: 'page/1&category/movie&category/drama&category/anime&category/variety',
+    class_name: '电影&电视剧&动漫&综艺',
+    class_url: 'category/movie&category/drama&category/anime&category/variety',
 
     推荐: '.post-box-list&&article;a:eq(-1)&&Text;.post-box-image&&style;a:eq(0)&&Text;a:eq(-1)&&href',
     一级: '.post-box-list&&article;a:eq(-1)&&Text;.post-box-image&&style;a:eq(0)&&Text;a:eq(-1)&&href',
@@ -37,9 +37,13 @@ var rule = {
                         let tracks = Array.isArray(s && s.tracks) ? s.tracks : [];
                         let hasV3 = false;
                         tracks.forEach(function(t) {
-                            let src = t && t.src ? String(t.src).replace(/\\/g, '/') : '';
-                            let server = t && t.server ? String(t.server).toLowerCase() : '';
-                            let u = /^https?:\/\//i.test(src) ? src : ('https://' + server + '.ddys.app' + (src.charAt(0) === '/' ? src : '/' + src));
+                            let src = t && t.src ? String(t.src).trim() : '';
+                            let server = t && t.server ? String(t.server).toLowerCase().trim() : '';
+                            let u = src;
+                            if (src && !/^https?:\/\//i.test(src) && server) {
+                                if (src.charAt(0) !== '/') src = '/' + src;
+                                u = 'https://' + server + '.ddys.app' + src;
+                            }
                             if (/^https:\/\/v3\.ddys\.app/i.test(u)) hasV3 = true;
                         });
                         let base = p.seasons.length > 1 ? ('第' + sn + '季') : 'DDYS';
@@ -53,6 +57,7 @@ var rule = {
                 }
                 TABS = tabs.length ? tabs : ['DDYS'];
             } catch (e) {
+                log('DDYS tabs error: ' + e.message);
                 TABS = ['DDYS'];
             }
         `,
@@ -68,7 +73,7 @@ var rule = {
                         let backup = [];
                         let hasV3 = false;
                         tracks.forEach(function(t, idx) {
-                            let src = t && t.src ? String(t.src).replace(/\\/g, '/').trim() : '';
+                            let src = t && t.src ? String(t.src).trim() : '';
                             let server = t && t.server ? String(t.server).trim().toLowerCase() : '';
                             if (!src) return;
                             let u = src;
@@ -97,6 +102,7 @@ var rule = {
                 }
                 LISTS = out.length ? out : [[]];
             } catch (e) {
+                log('DDYS lists error: ' + e.message);
                 LISTS = [[]];
             }
         `
