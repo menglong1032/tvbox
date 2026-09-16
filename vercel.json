@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/data-lab/realtime.html" }
+    { "source": "/", "destination": "/data-lab/realtime.html" },
+    { "source": "/api/maoyan", "destination": "/api/maoyan-router.js" }
   ],
   "headers": [
     {
